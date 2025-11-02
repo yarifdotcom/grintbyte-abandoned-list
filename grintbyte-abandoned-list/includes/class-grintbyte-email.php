@@ -34,47 +34,39 @@ class GrintByte_Email {
             }
 
             $store_name = get_bloginfo('name');
-            $subject = sprintf(
-                __( 'You left items in your cart at %s', 'grintbyte-abandoned' ),
-                $store_name
+            $restore_link = esc_url( add_query_arg( 'gb_recover_token', $record->token, site_url('/') ) );
+            $now = gmdate('Y-m-d H:i:s');
+
+            $customer_subject_template = get_option( 'gbabandoned_customer_subject', 'You left items in your cart at {store_name}' );
+            $customer_body_template = get_option( 'gbabandoned_customer_body',  '<p>Hi {customer_email}, restore your cart: <a href="{restore_link}">Click here</a></p>' );
+
+            $placeholders = [
+                '{customer_email}' => $email,
+                '{store_name}'     => esc_html( $store_name ),
+                '{restore_link}'   => $restore_link
+            ];
+            
+            $customer_subject = str_replace(
+                array_keys( $placeholders ),
+                array_values( $placeholders ),
+                $customer_subject_template
+            );
+            
+            $customer_message = str_replace(
+                array_keys( $placeholders ),
+                array_values( $placeholders ),
+                $customer_body_template
             );
 
-            $url = esc_url( add_query_arg( 'gb_recover_token', $record->token, site_url('/') ) );
-
-            $message = '
-            <html>
-            <body style="font-family: Arial, sans-serif; background-color: #f8f9fa; padding: 40px; color: #333;">
-                <div style="max-width: 600px; margin: 0 auto; background: #fff; border-radius: 10px; padding: 30px; box-shadow: 0 2px 6px rgba(0,0,0,0.1);">
-                    <h2 style="text-align:center; color:#333;">We saved your cart at ' . esc_html($store_name) . '</h2>
-                    <p style="font-size:16px; line-height:1.5; text-align:center;">
-                        You added some great items to your cart, but did not complete your order.<br>
-                        We have saved your cart for you!
-                    </p>
-                    <div style="text-align:center; margin:30px 0;">
-                        <a href="' . $url . '" style="background:#ff6b00; color:#fff; padding:14px 24px; text-decoration:none; border-radius:6px; font-weight:bold; display:inline-block;">
-                            🛒 Restore My Cart
-                        </a>
-                    </div>
-                    <p style="font-size:14px; color:#666; text-align:center;">
-                        If you did not intend to leave items in your cart, you can safely ignore this message.
-                    </p>
-                </div>
-                <p style="text-align:center; font-size:12px; color:#aaa; margin-top:20px;">
-                    &copy; ' . date('Y') . ' ' . esc_html($store_name) . '
-                </p>
-            </body>
-            </html>';
-
             // set HTML content-type
-            add_filter( 'wp_mail_content_type', function() { return 'text/html'; });
-
-            $sent = wp_mail( $email, $subject, $message );
-
+            add_filter( 'wp_mail_content_type', [ __CLASS__, 'set_html_content_type' ] );
+            
+            $sent = wp_mail( $email, $customer_subject, $customer_message );
+            
             // remove filter by referencing the same closure signature (anonymous closures cannot be removed easily),
             // so use a named function instead to be safe. We'll remove by resetting to default via remove_filter with a wrapper:
-            remove_filter( 'wp_mail_content_type', function() { return 'text/html'; } );
 
-            $now = gmdate('Y-m-d H:i:s');
+            remove_filter( 'wp_mail_content_type', [ __CLASS__, 'set_html_content_type' ] );
 
             if ( $sent ) {
                 $wpdb->update(
@@ -83,7 +75,45 @@ class GrintByte_Email {
                     [ 'id' => $record->id ]
                 );
                 GrintByte_Logger::info("Recovery email sent successfully to {$email} (id={$record->id})");
+
+                // Sent successfull email to customer also to admin
+                $admin_email = get_option( 'gbabandoned_admin_email', get_option( 'admin_email' ) );
+                
+                if ( is_email( $admin_email ) ) {
+                    $admin_subject_template = get_option( 'gbabandoned_admin_subject', 'Customer abandoned a cart' );
+                    $admin_body_template = get_option( 'gbabandoned_admin_body', 'Customer {customer_email} abandoned a cart on {date}' );
+
+                      $admin_placeholders = [
+                        '{customer_email}' => $email,
+                        '{cart_items}'     => '',
+                        '{date}'           => date_i18n('Y-m-d H:i:s'),
+                    ];
+
+                    $admin_subject = str_replace(
+                        array_keys( $admin_placeholders ),
+                        array_values( $admin_placeholders ),
+                        $admin_subject_template
+                    );
+
+                    $admin_body = str_replace(
+                        array_keys( $admin_placeholders ),
+                        array_values( $admin_placeholders ),
+                        $admin_body_template
+                    );
+
+                    add_filter( 'wp_mail_content_type', [ __CLASS__, 'set_html_content_type' ] );
+                    $sent_admin = wp_mail( $admin_email, $admin_subject, $admin_body );
+                    remove_filter( 'wp_mail_content_type', [ __CLASS__, 'set_html_content_type' ] );
+
+                    if ( $sent_admin ) {
+                        GrintByte_Logger::info("Admin notified about abandoned cart from {$email} (id={$record->id})");
+                    } else {
+                        GrintByte_Logger::warn("Failed to notify admin about abandoned cart from {$email} (id={$record->id})");
+                    }
+                }
+
                 return true;
+
             } else {
                 $wpdb->update(
                     $table,
@@ -108,5 +138,9 @@ class GrintByte_Email {
             GrintByte_Logger::error("Exception in send_recovery for id={$record->id}: " . $e->getMessage());
             return false;
         }
+    }
+
+    public static function set_html_content_type() {
+        return 'text/html';
     }
 }

@@ -12,6 +12,8 @@ class GrintByte_Admin {
         add_action( 'admin_menu', [ $this, 'register_menu' ] );
         add_action( 'admin_post_gbabandoned_delete_cart', [ $this, 'delete_cart' ] );
         add_action( 'admin_post_gbabandoned_save_settings', [ $this, 'save_settings' ] );
+        add_action( 'admin_post_gbabandoned_save_email_admin', [ $this, 'save_email_admin' ] );
+        add_action( 'admin_post_gbabandoned_save_email_customer', [ $this, 'save_email_customer' ] );
     }
 
     /**
@@ -40,6 +42,8 @@ class GrintByte_Admin {
             <h2 class="nav-tab-wrapper">
                 <a href="?page=grintbyte-abandoned&tab=list" class="nav-tab <?php echo $active_tab == 'list' ? 'nav-tab-active' : ''; ?>">Abandoned Carts</a>
                 <a href="?page=grintbyte-abandoned&tab=settings" class="nav-tab <?php echo $active_tab == 'settings' ? 'nav-tab-active' : ''; ?>">Settings</a>
+                <a href="?page=grintbyte-abandoned&tab=email_admin" class="nav-tab <?php echo $active_tab == 'email_admin' ? 'nav-tab-active' : ''; ?>">Email Admin</a>
+                <a href="?page=grintbyte-abandoned&tab=email_customer" class="nav-tab <?php echo $active_tab == 'email_customer' ? 'nav-tab-active' : ''; ?>">Email Customer</a>
             </h2>
         <?php
 
@@ -47,6 +51,12 @@ class GrintByte_Admin {
         switch ( $active_tab ) {
             case 'settings':
                 include $view_path . 'view-settings.php';
+                break;
+            case 'email_admin':
+                include $view_path . 'view-email-admin.php';
+                break;
+            case 'email_customer':
+                include $view_path . 'view-email-customer.php';
                 break;
             default:
                 include $view_path . 'view-list.php';
@@ -88,6 +98,36 @@ class GrintByte_Admin {
         }
 
         wp_safe_redirect( admin_url( 'admin.php?page=grintbyte-abandoned&tab=list&deleted=1' ) );
+        exit;
+    }
+
+    /**
+     * Handle saving settings from the email admin
+     */
+
+    public function save_email_admin() {
+        check_admin_referer( 'gbabandoned_save_email_admin' );
+
+        update_option( 'gbabandoned_admin_email', sanitize_email( $_POST['admin_email'] ?? '' ) );
+        update_option( 'gbabandoned_admin_subject', sanitize_text_field( $_POST['admin_subject'] ?? '' ) );
+        update_option( 'gbabandoned_admin_body', wp_kses_post( $_POST['admin_body'] ?? '' ) );
+
+        wp_safe_redirect( admin_url( 'admin.php?page=grintbyte-abandoned&tab=email_admin&updated=true' ) );
+        exit;
+    }
+
+    /**
+     * Handle saving settings from the email customer
+     */
+
+
+    public function save_email_customer() {
+        check_admin_referer( 'gbabandoned_save_email_customer' );
+
+        update_option( 'gbabandoned_customer_subject', sanitize_text_field( $_POST['customer_subject'] ?? '' ) );
+        update_option( 'gbabandoned_customer_body', wp_kses_post( $_POST['customer_body'] ?? '' ) );
+
+        wp_safe_redirect( admin_url( 'admin.php?page=grintbyte-abandoned&tab=email_customer&updated=true' ) );
         exit;
     }
 

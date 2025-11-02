@@ -30,6 +30,11 @@ class GrintByte_Activator {
         add_option( 'gbabandoned_cleanup_days', 30 );
         add_option( 'gbabandoned_cron_interval', 60 );
 
+        add_option( 'gbabandoned_customer_subject', 'You left items in your cart at {store_name}' );
+        add_option( 'gbabandoned_customer_body', '<p>Hi {customer_email}, restore your cart: <a href="{restore_link}">Click here</a></p>' );
+        add_option( 'gbabandoned_admin_subject', 'Customer abandoned a cart' );
+        add_option( 'gbabandoned_admin_body', 'Customer {customer_email} abandoned a cart on {date}' );
+
         // set cron job firstly
         if ( ! wp_next_scheduled( 'gbabandoned_cron_check' ) ) {
             wp_schedule_event( time(), 'hourly', 'gbabandoned_cron_check' );
