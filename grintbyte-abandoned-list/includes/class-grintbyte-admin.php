@@ -44,6 +44,7 @@ class GrintByte_Admin {
                 <a href="?page=grintbyte-abandoned&tab=settings" class="nav-tab <?php echo $active_tab == 'settings' ? 'nav-tab-active' : ''; ?>">Settings</a>
                 <a href="?page=grintbyte-abandoned&tab=email_admin" class="nav-tab <?php echo $active_tab == 'email_admin' ? 'nav-tab-active' : ''; ?>">Email Admin</a>
                 <a href="?page=grintbyte-abandoned&tab=email_customer" class="nav-tab <?php echo $active_tab == 'email_customer' ? 'nav-tab-active' : ''; ?>">Email Customer</a>
+                <a href="?page=grintbyte-abandoned&tab=howto" class="nav-tab <?php echo $active_tab == 'howto' ? 'nav-tab-active' : ''; ?>">How-To</a>
             </h2>
         <?php
 
@@ -57,6 +58,9 @@ class GrintByte_Admin {
                 break;
             case 'email_customer':
                 include $view_path . 'view-email-customer.php';
+                break;
+            case 'howto':
+                include $view_path . 'view-howto.php';
                 break;
             default:
                 include $view_path . 'view-list.php';
