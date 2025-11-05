@@ -37,13 +37,13 @@ $body = get_option( 'gbabandoned_admin_body', "A customer ({customer_email}) has
                         <textarea name="admin_body" id="admin_body" rows="8" class="large-text code"><?php echo esc_textarea( $body ); ?></textarea>
                         <p class="description">
                             Available placeholders:<br>
-                            <code>{customer_email}</code>, <code>{date}</code>
+                            <code>{customer_email}</code>, <code>{date}</code>, <code>{items}</code>
                         </p>
                     </td>
                 </tr>
             </tbody>
         </table>
 
-        <?php submit_button( 'Save Settings' ); ?>
+        <?php submit_button( 'Save Changes' ); ?>
     </form>
 </div>

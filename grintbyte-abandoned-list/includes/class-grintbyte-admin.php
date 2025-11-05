@@ -81,6 +81,7 @@ class GrintByte_Admin {
         update_option( 'gbabandoned_cleanup_days', intval($_POST['cleanup']) );
         update_option( 'gbabandoned_cron_interval', intval($_POST['cron_interval']) );
         update_option( 'gbabandoned_delete_recovered', isset( $_POST['gbabandoned_delete_recovered'] ) ? 1 : 0 );
+        update_option( 'gbabandoned_enable_log', isset( $_POST['gbabandoned_enable_log'] ) ? 1 : 0 );
 
         // Reschedule cron with new interval
         if ( class_exists( 'GrintByte_Cron' ) && method_exists( 'GrintByte_Cron', 'reschedule_cron' ) ) {

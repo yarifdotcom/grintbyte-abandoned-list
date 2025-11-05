@@ -36,6 +36,19 @@ $cron_interval = get_option( 'gbabandoned_cron_interval', 60 );
                 </p>
             </td>
         </tr>
+        <tr valign="top">
+            <th scope="row"><?php _e('Enable Log', 'grintbyte-abandoned'); ?></th>
+            <td>
+                <label>
+                    <input type="checkbox" name="gbabandoned_enable_log" value="1"
+                        <?php checked( get_option('gbabandoned_enable_log', 0), 1 ); ?>>
+                    <?php _e('Enable Log at /wp-content/debug-abandoned.log', 'grintbyte-abandoned'); ?>
+                </label>
+                <p class="description">
+                    <?php _e('If checked, Enable Log at /wp-content/debug-abandoned.log.', 'grintbyte-abandoned'); ?>
+                </p>
+            </td>
+        </tr>
         <tr>
             <th scope="row">Cron job interval</th>
             <td>

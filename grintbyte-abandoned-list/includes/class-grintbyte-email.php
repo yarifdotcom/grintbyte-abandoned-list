@@ -36,6 +36,8 @@ class GrintByte_Email {
             $store_name = get_bloginfo('name');
             $restore_link = esc_url( add_query_arg( 'gb_recover_token', $record->token, site_url('/') ) );
             $now = gmdate('Y-m-d H:i:s');
+            
+            $formatted_items = self::format_cart_items( $record->items );
 
             $customer_subject_template = get_option( 'gbabandoned_customer_subject', 'You left items in your cart at {store_name}' );
             $customer_body_template = get_option( 'gbabandoned_customer_body',  '<p>Hi {customer_email}, restore your cart: <a href="{restore_link}">Click here</a></p>' );
@@ -43,6 +45,7 @@ class GrintByte_Email {
             $placeholders = [
                 '{customer_email}' => $email,
                 '{store_name}'     => esc_html( $store_name ),
+                '{items}'          => $formatted_items,
                 '{restore_link}'   => $restore_link
             ];
             
@@ -83,9 +86,9 @@ class GrintByte_Email {
                     $admin_subject_template = get_option( 'gbabandoned_admin_subject', 'Customer abandoned a cart' );
                     $admin_body_template = get_option( 'gbabandoned_admin_body', 'Customer {customer_email} abandoned a cart on {date}' );
 
-                      $admin_placeholders = [
+                    $admin_placeholders = [
                         '{customer_email}' => $email,
-                        '{cart_items}'     => '',
+                        '{items}'          => $formatted_items,
                         '{date}'           => date_i18n('Y-m-d H:i:s'),
                     ];
 
@@ -143,4 +146,54 @@ class GrintByte_Email {
     public static function set_html_content_type() {
         return 'text/html';
     }
+
+    private static function format_cart_items( $items_raw ) {
+        // JSON decode?
+        $items = json_decode( $items_raw, true );
+
+        // If not JSON decode, try unserialize
+        if ( ! $items ) {
+            $items = maybe_unserialize( $items_raw );
+        }
+
+        if ( ! is_array( $items ) || empty( $items ) ) {
+            return "(No cart items)";
+        }
+
+        $lines = [];
+
+        foreach ( $items as $item ) {
+
+            $name = '';
+
+            // WC Product Object
+            if ( isset( $item['data'] ) ) {
+                if ( is_object( $item['data'] ) && method_exists( $item['data'], 'get_name' ) ) {
+                    $name = $item['data']->get_name();
+                }
+                elseif ( is_array( $item['data'] ) && isset( $item['data']['name'] ) ) {
+                    $name = $item['data']['name'];
+                }
+            }
+
+            // Fallback if product ID exists
+            if ( ! $name && isset( $item['product_id'] ) ) {
+                $product = wc_get_product( $item['product_id'] );
+                if ( $product ) {
+                    $name = $product->get_name();
+                }
+            }
+
+            if ( ! $name ) {
+                $name = 'Unknown Product';
+            }
+
+            $qty = isset($item['quantity']) ? $item['quantity'] : ( $item['qty'] ?? 1 );
+
+            $lines[] = "- {$name} × {$qty}";
+        }
+
+        return implode("\n", $lines);
+    }
+
 }

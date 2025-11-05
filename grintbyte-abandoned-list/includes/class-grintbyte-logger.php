@@ -23,11 +23,14 @@ class GrintByte_Logger {
      */
 
     public static function log( $message , $level = 'INFO') {
+        $enabled = get_option( 'gbabandoned_enable_log', 0 ); // default: false (unchecked)
+        if(!$enabled) return true;
+        
         self::init();
 
         $timestamp = gmdate('Y-m-d H:i:s');
         $entry = "[{$timestamp}] [{$level}] {$message}\n";
-        file_put_contents( self::$log_file, $entry, FILE_APPEND );
+        file_put_contents( self::$log_file, $entry, FILE_APPEND | LOCK_EX  );
     }
 
     public static function separator() {

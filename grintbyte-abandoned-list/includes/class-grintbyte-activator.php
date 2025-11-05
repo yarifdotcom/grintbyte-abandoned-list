@@ -29,6 +29,8 @@ class GrintByte_Activator {
         add_option( 'gbabandoned_delay_minutes', 60 );
         add_option( 'gbabandoned_cleanup_days', 30 );
         add_option( 'gbabandoned_cron_interval', 60 );
+        add_option( 'gbabandoned_delete_recovered', 0 );
+        add_option( 'gbabandoned_enable_log', 0 ); 
 
         add_option( 'gbabandoned_customer_subject', 'You left items in your cart at {store_name}' );
         add_option( 'gbabandoned_customer_body', '<p>Hi {customer_email}, restore your cart: <a href="{restore_link}">Click here</a></p>' );

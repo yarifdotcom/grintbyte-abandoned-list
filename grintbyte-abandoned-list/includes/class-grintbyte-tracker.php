@@ -59,6 +59,8 @@ class GrintByte_Tracker {
         
         if ( ! class_exists( 'WooCommerce' ) || ! WC()->cart ) return;
 
+        // GrintByte_Logger::info("CAPTURE ACTIVITY");
+
         $session = WC()->session ? WC()->session->get_session_cookie() : null;
         $session_id = $session[0] ?? session_id();
         if ( ! $session_id ) return;

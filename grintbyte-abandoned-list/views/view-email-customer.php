@@ -27,13 +27,13 @@ $body = get_option( 'gbabandoned_customer_body', "Hi {customer_email},\n\nYou le
                         <textarea name="customer_body" id="customer_body" rows="10" class="large-text code"><?php echo esc_textarea( $body ); ?></textarea>
                         <p class="description">
                             Available placeholders:<br>
-                            <code>{customer_email}</code>, <code>{restore_link}</code>, <code>{store_name}</code>
+                            <code>{customer_email}</code>, <code>{restore_link}</code>, <code>{store_name}</code>, <code>{items}</code>
                         </p>
                     </td>
                 </tr>
             </tbody>
         </table>
 
-        <?php submit_button( 'Save Template' ); ?>
+        <?php submit_button( 'Save Changes' ); ?>
     </form>
 </div>
